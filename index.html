@@ -58,12 +58,36 @@ backWall.position.set(0,5,-10);
 scene.add(backWall);
 
 /* ================= 상품 ================= */
-const product = new THREE.Mesh(
-  new THREE.BoxGeometry(1,1.6,0.4),
-  new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.2, metalness:0.1 })
+/* ================= 나이키 된장포스 느낌 신발 ================= */
+const shoeGroup = new THREE.Group();
+
+// 솔(밑창)
+const sole = new THREE.Mesh(
+  new THREE.BoxGeometry(2.2, 0.3, 0.8),
+  new THREE.MeshStandardMaterial({ color:0xf5f1e6, roughness:0.8 }) // 된장빛
 );
-product.position.set(0,1.6,-2);
-scene.add(product);
+sole.position.y = 0.15;
+shoeGroup.add(sole);
+
+// 어퍼(신발 몸통)
+const upper = new THREE.Mesh(
+  new THREE.BoxGeometry(2, 0.8, 0.75),
+  new THREE.MeshStandardMaterial({ color:0xd8c7a3, roughness:0.6 })
+);
+upper.position.y = 0.75;
+shoeGroup.add(upper);
+
+// 스우시 느낌
+const swoosh = new THREE.Mesh(
+  new THREE.BoxGeometry(0.8, 0.15, 0.05),
+  new THREE.MeshStandardMaterial({ color:0x111111 })
+);
+swoosh.position.set(0.2, 0.8, 0.42);
+shoeGroup.add(swoosh);
+
+shoeGroup.position.set(0, 0, -2);
+shoeGroup.scale.set(0.9,0.9,0.9);
+scene.add(shoeGroup);
 
 /* ================= FPS 이동 ================= */
 const keys = {};
@@ -99,7 +123,7 @@ addEventListener('click',e=>{
   mouse.x = (e.clientX/innerWidth)*2-1;
   mouse.y = -(e.clientY/innerHeight)*2+1;
   raycaster.setFromCamera(mouse, camera);
-  const hit = raycaster.intersectObject(product);
+  const hit = raycaster.intersectObject(shoeGroup,true);
   if(hit.length) alert('상품 상세 → Shopify 결제 연결 위치');
 });
 
@@ -118,10 +142,11 @@ addEventListener('resize',()=>{
 /* ================= 루프 ================= */
 (function animate(){
   requestAnimationFrame(animate);
-  product.rotation.y += 0.01;
+  shoeGroup.rotation.y += 0.01;
   moveCamera();
   renderer.render(scene,camera);
 })();
 </script>
 </body>
 </html>
+
