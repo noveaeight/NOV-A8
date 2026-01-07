@@ -1,152 +1,91 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>3D Shopify Style Store</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    html,body{margin:0;overflow:hidden;background:#0f0f0f;font-family:Arial}
-    #ui{
-      position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-      background:#000c;color:#fff;padding:12px 20px;border-radius:999px;
-      display:flex;gap:12px;align-items:center
-    }
-    #buy{background:#fff;color:#000;border:none;padding:8px 16px;border-radius:20px;cursor:pointer}
-    #hint{position:fixed;top:20px;left:50%;transform:translateX(-50%);color:#aaa;font-size:14px}
-  </style>
+<meta charset="UTF-8" />
+<title>3D Sneaker Practice Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+html,body{margin:0;overflow:hidden;background:#0f0f0f;font-family:Arial}
+#hint{position:fixed;top:20px;left:50%;transform:translateX(-50%);color:#888;font-size:13px}
+#ui{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000c;color:#fff;padding:12px 20px;border-radius:999px;display:flex;gap:12px;align-items:center}
+#buy,#color{border:none;border-radius:20px;padding:8px 16px;cursor:pointer}
+#buy{background:#fff;color:#000}
+#color{background:#333;color:#fff}
+#info{position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#666;font-size:14px}
+</style>
 </head>
 <body>
 
-<div id="hint">WASD 이동 · 마우스로 시점 · 상품 클릭</div>
+<div id="hint">W A S D 이동 · 마우스 시점 · 클릭 확대 · ESC 초기화</div>
+<div id="info">NIKE 된장포스 감성 · 3D 연습용</div>
 <div id="ui">
-  <span>SHOPIFY · 3D STORE</span>
-  <button id="buy">BUY</button>
+  <span id="cart">🛒 CART 0</span>
+  <button id="buy">ADD</button>
+  <button id="color">COLOR</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
 <script>
-/* ================= 기본 세팅 ================= */
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0f0f0f);
+/* ===== 기본 ===== */
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0f0f0f);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,1000);
+camera.position.set(0,1.6,6);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;document.body.appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 6);
+/* ===== 조명 ===== */
+scene.add(new THREE.AmbientLight(0xffffff,0.5));
+const spot=new THREE.SpotLight(0xffffff,1.2);spot.position.set(2,6,3);spot.castShadow=true;scene.add(spot);
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(innerWidth, innerHeight);
-document.body.appendChild(renderer.domElement);
+/* ===== 공간 ===== */
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.MeshStandardMaterial({color:0x1a1a1a}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const wall=new THREE.Mesh(new THREE.PlaneGeometry(50,10),new THREE.MeshStandardMaterial({color:0x121212}));wall.position.set(0,5,-10);scene.add(wall);
 
-/* ================= 조명 ================= */
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const spot = new THREE.SpotLight(0xffffff, 1.2);
-spot.position.set(2,6,3);
-scene.add(spot);
-
-/* ================= 공간 ================= */
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(50,50),
-  new THREE.MeshStandardMaterial({ color:0x1a1a1a })
-);
-floor.rotation.x = -Math.PI/2;
-scene.add(floor);
-
-const backWall = new THREE.Mesh(
-  new THREE.PlaneGeometry(50,10),
-  new THREE.MeshStandardMaterial({ color:0x121212 })
-);
-backWall.position.set(0,5,-10);
-scene.add(backWall);
-
-/* ================= 상품 ================= */
-/* ================= 나이키 된장포스 느낌 신발 ================= */
+/* ===== 신발 (GLB 로드 방식) ===== */
 const shoeGroup = new THREE.Group();
-
-// 솔(밑창)
-const sole = new THREE.Mesh(
-  new THREE.BoxGeometry(2.2, 0.3, 0.8),
-  new THREE.MeshStandardMaterial({ color:0xf5f1e6, roughness:0.8 }) // 된장빛
-);
-sole.position.y = 0.15;
-shoeGroup.add(sole);
-
-// 어퍼(신발 몸통)
-const upper = new THREE.Mesh(
-  new THREE.BoxGeometry(2, 0.8, 0.75),
-  new THREE.MeshStandardMaterial({ color:0xd8c7a3, roughness:0.6 })
-);
-upper.position.y = 0.75;
-shoeGroup.add(upper);
-
-// 스우시 느낌
-const swoosh = new THREE.Mesh(
-  new THREE.BoxGeometry(0.8, 0.15, 0.05),
-  new THREE.MeshStandardMaterial({ color:0x111111 })
-);
-swoosh.position.set(0.2, 0.8, 0.42);
-shoeGroup.add(swoosh);
-
-shoeGroup.position.set(0, 0, -2);
-shoeGroup.scale.set(0.9,0.9,0.9);
 scene.add(shoeGroup);
 
-/* ================= FPS 이동 ================= */
-const keys = {};
-addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+const loader = new THREE.GLTFLoader();
+// ⬇️ 여기에 "합법적으로 소유한" 신발 GLB 파일 경로를 넣어
+loader.load(
+  'shoe.glb',
+  (gltf)=>{
+    const model = gltf.scene;
+    model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; }});
+    model.scale.set(1.2,1.2,1.2);
+    model.position.set(0,0,-2);
+    shoeGroup.add(model);
+  },
+  undefined,
+  (err)=>{ console.error('GLB 로드 실패', err); }
+);
 
-let yaw = 0, pitch = 0;
-addEventListener('mousemove',e=>{
-  yaw -= e.movementX * 0.002;
-  pitch -= e.movementY * 0.002;
-  pitch = Math.max(-1.2, Math.min(1.2, pitch));
-});
+/* ===== 이동 ===== */
+const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key==='Escape')shoeGroup.scale.set(0.9,0.9,0.9);});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let yaw=0,pitch=0;addEventListener('mousemove',e=>{yaw-=e.movementX*0.002;pitch-=e.movementY*0.002;pitch=Math.max(-1.2,Math.min(1.2,pitch));shoeGroup.rotation.y=(e.clientX/innerWidth-0.5)*2;});
+function moveCamera(){camera.rotation.set(pitch,yaw,0);const dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.y=0;dir.normalize();const right=new THREE.Vector3().crossVectors(camera.up,dir).normalize();if(keys['w'])camera.position.addScaledVector(dir,0.08);if(keys['s'])camera.position.addScaledVector(dir,-0.08);if(keys['a'])camera.position.addScaledVector(right,0.08);if(keys['d'])camera.position.addScaledVector(right,-0.08);shoeGroup.lookAt(camera.position.x,1.6,camera.position.z);} 
 
-function moveCamera(){
-  camera.rotation.set(pitch, yaw, 0);
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  dir.y = 0;
-  dir.normalize();
+/* ===== 클릭 ===== */
+const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();addEventListener('click',e=>{mouse.x=e.clientX/innerWidth*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObject(shoeGroup,true);if(hit.length)shoeGroup.scale.set(1.2,1.2,1.2);});
 
-  const right = new THREE.Vector3().crossVectors(camera.up, dir).normalize();
+/* ===== UI ===== */
+let cart=0;document.getElementById('buy').onclick=()=>{cart++;document.getElementById('cart').innerText=`🛒 CART ${cart}`;};
+let toggle=false;document.getElementById('color').onclick=()=>{
+  toggle=!toggle;
+  shoeGroup.traverse(o=>{
+    if(o.isMesh && o.material && o.material.color){
+      o.material.color.set(toggle?0xbfa97a:0xd8c7a3);
+    }
+  });
+};upper.material.color.set(toggle?0xbfa97a:0xd8c7a3);};
 
-  if(keys['w']) camera.position.addScaledVector(dir, 0.08);
-  if(keys['s']) camera.position.addScaledVector(dir, -0.08);
-  if(keys['a']) camera.position.addScaledVector(right, 0.08);
-  if(keys['d']) camera.position.addScaledVector(right, -0.08);
-}
+/* ===== 반응형 ===== */
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
-/* ================= 클릭 감지 ================= */
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-addEventListener('click',e=>{
-  mouse.x = (e.clientX/innerWidth)*2-1;
-  mouse.y = -(e.clientY/innerHeight)*2+1;
-  raycaster.setFromCamera(mouse, camera);
-  const hit = raycaster.intersectObject(shoeGroup,true);
-  if(hit.length) alert('상품 상세 → Shopify 결제 연결 위치');
-});
-
-/* ================= BUY 버튼 ================= */
-document.getElementById('buy').onclick = ()=>{
-  alert('여기에 Shopify Buy Button URL 연결');
-};
-
-/* ================= 반응형 ================= */
-addEventListener('resize',()=>{
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
-});
-
-/* ================= 루프 ================= */
-(function animate(){
-  requestAnimationFrame(animate);
-  shoeGroup.rotation.y += 0.01;
-  moveCamera();
-  renderer.render(scene,camera);
-})();
+/* ===== 루프 ===== */
+(function animate(){requestAnimationFrame(animate);shoeGroup.rotation.y+=0.01;moveCamera();renderer.render(scene,camera);})();
 </script>
 </body>
 </html>
+
 
